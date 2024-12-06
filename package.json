@@ -1,0 +1,7 @@
+{
+    "scripts": {
+        "start": "concurrently \"npm run server\" \"npm run client\"",
+        "server": "cd instapost-backend && nodemon server.js",
+        "client": "cd instapost-frontend && npm run dev"
+    }
+}

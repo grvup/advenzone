@@ -1,0 +1,89 @@
+/* Navbar basic styling */
+.navbar {
+    background-color: #37BEC2;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    font-family: Arial, sans-serif;
+
+    height: 4vw;
+    border-radius: 20px;
+    justify-content: space-between;
+    margin: 1vh 2vw;
+  }
+  /* .nav-links{
+    align-items:end;
+  } */
+  .logo, .search-bar, .nav-links {
+    flex: 1; /* This makes each section take 1/3 of the navbar width */
+    display: flex;
+    align-items: center;
+  }
+  /* Logo and title styling */
+  .logo {
+    display: flex;
+    align-items: center;
+    color: black;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-right: 20px;
+  }
+  
+  .logo-image {
+    width: 50px;
+    height: 50px;
+    margin-right: 8px;
+  }
+  
+  /* Search bar styling */
+  .search-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background-color: #E8F0FE;
+    border-radius: 20px;
+    padding: 5px 10px;
+    /* max-width: 300px; */
+  }
+  
+  .search-bar input {
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 5px;
+    flex: 1;
+    font-size: 0.9em;
+  }
+  
+  .search-icon {
+    font-size: 1em;
+    color: gray;
+  }
+  
+  /* Nav links styling */
+  .nav-links {
+    display: flex;
+    align-items: center;
+    /* margin-left: 40px; */
+    justify-content: space-evenly;
+    /* max-width: 25vw; */
+  }
+
+  
+  .nav-links div {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+    color: black;
+    font-size: 0.9em;
+  }
+  
+  .icon {
+    margin-right: 5px;
+    font-size: 1.2em;
+    color: #E91E63;
+  }
+  .icon-down{
+    margin-left: 5px;
+  }
+  
