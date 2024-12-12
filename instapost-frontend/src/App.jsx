@@ -6,6 +6,8 @@ import HashtagFeed from './pages/HashtagFeed';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import LocationAccess from './pages/LocationAccess';
+import HashtagFeedLocation from './pages/locationbased/HashtagFeedLocation';
+import HashtagFeedLocationActivity from './pages/locationactivitybased/HashtagFeedLocationActivity';
 import { ChakraProvider } from '@chakra-ui/react';
 function App() {
 
@@ -23,6 +25,10 @@ function App() {
         } />
         <Route path="/posts" element={<InstaFeed />} />
         <Route path="/hashtags" element={<HashtagFeed />} />
+        <Route path={`/location/:locationid/:locationname`} element={<HashtagFeedLocation />} />
+        <Route path={`/location/:locationid/activity-details/:activityid/:locationname/:activityname`} element={<HashtagFeedLocationActivity />} />
+        {/* https://www.advenzone.com/location/15/activity-details/70/bir-billing/hike---fly---paragliding */}
+        
       </Routes>
     </div>
   </Router>

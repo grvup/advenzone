@@ -13,6 +13,22 @@ const Home = () => {
 
 
   const fullMessage = 'Welcome to Advenzone';
+  const formatItinerary = (text) => {
+    // Replace Day headings with larger text
+    const html = text
+        .replace(/### Day (\d+): (.+)/g, '<h1 style="font-size: 1.8em; margin-top: 20px;">Day $1: $2</h1>') // Larger Day headings
+        .replace(/#### Morning:/g, '<p><strong>Morning:</strong></p>') // Bold Morning
+        .replace(/#### Afternoon:/g, '<p><strong>Afternoon:</strong></p>') // Bold Afternoon
+        .replace(/#### Evening:/g, '<p><strong>Evening:</strong></p>') // Bold Evening
+        .replace(/- (.+?) \[(.+?)\]\((.+?)\)/g, '<li>$1: <a href="$3" target="_blank" style="color: blue; text-decoration: underline;">$2</a></li>') // Parse list with links
+        .replace(/- (.+)/g, '<li>$1</li>'); // Parse bullet points
+
+    // Wrap list items into <ul> tags and clean up structure
+    return html.replace(/(<p><strong>.*?<\/strong><\/p>)/g, '</ul>$1<ul>').replace(/<\/ul>(?!<p>)/g, '</ul>');
+};
+
+
+
 
   useEffect(() => {
     let index = 0;
@@ -147,7 +163,12 @@ const Home = () => {
                     color:'black'
                     }}
                 >
-                    {msg.text}
+                   {msg.type === 'ai' ? (
+                    // Check if message is from AI and attempt to parse the itinerary
+                    <div dangerouslySetInnerHTML={{ __html: formatItinerary(msg.text) }} />
+                ) : (
+                    msg.text
+                )}
                 </div>
                 ))
             )}
