@@ -19,8 +19,8 @@ dotenv.config();
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
-
-const pool = new Pool(dbConfig);
+const pgPool = require('../connectionpg')
+// const pool = new Pool(dbConfig);
 // Itinerary Search Endpoint
 // const searchItinerary = async (req, res) => {
 //     try {
@@ -87,7 +87,7 @@ const getAdvenzoneLinks = async () => {
     `;
 
     try {
-        const result = await pool.query(query);
+        const result = await pgPool.query(query);
         const activities = result.rows;
 
         // Generate links based on database records

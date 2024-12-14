@@ -6,33 +6,65 @@ import { useParams, useNavigate } from "react-router-dom";
 const HashtagFeedLocation = () => {
   const [posts, setPosts] = useState([]); // State to store posts
   const [loading, setLoading] = useState(false); // State for loading status
+  const [loadingActivities, setLoadingActivities] = useState(false); // State for loading status
   const [error, setError] = useState(null); // State for errors
+  const [errorActivities, setErrorActivities] = useState(null); // State for errors
   const { locationid, locationname } = useParams();
   const [activities, setActivities] = useState([]); // State to store activities
-  const [errorActivity, setErrorActivity] = useState(null); // State for activity errors
+  // const [errorActivity, setErrorActivity] = useState(null); // State for activity errors
   const navigate = useNavigate();
 
   // Fetch activities on component mount
   useEffect(() => {
     const getActivities = async () => {
-      setLoading(true);
+      setLoadingActivities(true);
       try {
         const response = await axios.get(`http://localhost:5000/api/activities`, {
           params: { locationid },
         });
         setActivities(response.data);
-        setErrorActivity(null);
+        setErrorActivities(null);
       } catch (err) {
-        setErrorActivity("Failed to fetch activities");
+        setErrorActivities("Failed to fetch activities");
         setActivities([]);
         console.error(err);
       } finally {
-        setLoading(false);
+        setLoadingActivities(false);
       }
     };
 
     getActivities();
   }, [locationid]);
+
+  const fetchPosts = async (hashtag) => {
+    if (!hashtag) return;
+    console.log(hashtag)
+    setLoading(true);
+    setError(null); // Reset any previous errors
+
+    try {
+      const response = await axios.get(`http://localhost:5000/api/hashtags`, {
+        params: { hashtag },
+      });
+      setPosts(response.data.posts); // Set the posts state with the fetched data
+    } catch (err) {
+      setError(`Failed to fetch posts for ${locationname}`);
+      setPosts([]);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch locations on component mount
+//   useEffect(() => {
+//     fetchLocations();
+//   }, []);
+
+  // Fetch posts whenever the selected location changes
+  useEffect(() => {
+    fetchPosts(locationname);
+  }, [locationname]);
 
   // Navigate to activity-specific page
   const handleActivityClick = (activityid,addressline1) => {
@@ -44,8 +76,8 @@ const HashtagFeedLocation = () => {
     <div className="hashtag-feed">
       <h2 style={{ color: "black" }}>Explore Activities in {locationname}</h2>
 
-      {loading && <p>Loading activities...</p>}
-      {errorActivity && <p className="error">{errorActivity}</p>}
+      {loadingActivities && <p>Loading activities...</p>}
+      {errorActivities && <p className="error">{errorActivities}</p>}
 
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
         {activities.map((activity) => (
