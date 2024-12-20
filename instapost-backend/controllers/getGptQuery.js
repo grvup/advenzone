@@ -80,6 +80,7 @@ const getAdvenzoneLinks = async () => {
         SELECT
             activities.id AS activity_id,
             activities.addressline1 AS activity_name,
+            activities.category AS activity_category,
             locations.id AS location_id,
             locations.locationname AS location_name
         FROM activities
@@ -92,7 +93,7 @@ const getAdvenzoneLinks = async () => {
 
         // Generate links based on database records
         const links = activities.map(activity => {
-            const { activity_id, activity_name, location_id, location_name } = activity;
+            const { activity_id, activity_name,activity_category, location_id, location_name } = activity;
 
             // Format activity name and location name to URL-safe slugs
             const activitySlug = activity_name.toLowerCase().replace(/\s+/g, '-');
@@ -101,7 +102,7 @@ const getAdvenzoneLinks = async () => {
             return {
                 activity: activity_name,
                 location: location_name,
-                url: `https://staging.advenzone.in/location/${location_id}/activity-details/${activity_id}/${locationSlug}/${activitySlug}`
+                url: `https://staging.advenzone.in/location/${location_id}/${activity_category}-details/${activity_id}/${locationSlug}/${activitySlug}`
             };
         });
 
@@ -113,6 +114,63 @@ const getAdvenzoneLinks = async () => {
 };
 
 
+// const searchItinerary = async (req, res) => {
+//     try {
+//         const { question } = req.body;
+//         console.log('User question:', question);
+
+//         // Validate input
+//         if (!question) {
+//             return res.status(400).json({ error: 'Question is required' });
+//         }
+
+//         // Fetch Advenzone links from the database
+//         const advenzoneLinks = await getAdvenzoneLinks();
+
+//         // Construct system and user prompts for GPT model
+//         const systemMessage = "You are an advanced travel assistant capable of creating comprehensive itineraries by incorporating data from both specific and general sources.";
+//         const userPrompt = `A user is asking: "${question}"
+
+// Here are activities available on Advenzone with their links:
+// ${advenzoneLinks.map(link => `- ${link.activity} at ${link.location}: ${link.url}`).join('\n')}
+
+// Incorporate the above activities where relevant. If there are no matching activities, create the best itinerary with general adventure options. Include links for restaurants, beaches, parks, and other points of interest where appropriate. Format the itinerary into sections: Morning, Afternoon, and Evening.`;
+
+//         // Call OpenAI API
+//         const openaiResponse = await openai.chat.completions.create({
+//             model: "gpt-3.5-turbo", // Use GPT-4 Turbo if available
+//             messages: [
+//                 { role: "system", content: systemMessage },
+//                 { role: "user", content: userPrompt }
+//             ],
+//             max_tokens: 500,
+//             temperature: 0.7,
+//         });
+
+//         // Extract result from the API response
+//         const resultText = openaiResponse.choices[0]?.message?.content;
+
+//         if (!resultText) {
+//             return res.status(500).json({ error: 'No response from OpenAI API', success: false });
+//         }
+
+//         console.log('Generated Itinerary:', resultText);
+
+//         // Send the response back to the client
+//         res.json({
+//             result: resultText,
+//             success: true
+//         });
+
+//     } catch (error) {
+//         console.error('Error in searchItinerary:', error);
+//         res.status(500).json({
+//             error: 'Failed to generate itinerary',
+//             details: error.message,
+//             success: false
+//         });
+//     }
+// };
 const searchItinerary = async (req, res) => {
     try {
         const { question } = req.body;
@@ -128,21 +186,51 @@ const searchItinerary = async (req, res) => {
 
         // Construct system and user prompts for GPT model
         const systemMessage = "You are an advanced travel assistant capable of creating comprehensive itineraries by incorporating data from both specific and general sources.";
+
         const userPrompt = `A user is asking: "${question}"
 
 Here are activities available on Advenzone with their links:
 ${advenzoneLinks.map(link => `- ${link.activity} at ${link.location}: ${link.url}`).join('\n')}
 
-Incorporate the above activities where relevant. If there are no matching activities, create the best itinerary with general adventure options. Include links for restaurants, beaches, parks, and other points of interest where appropriate. Format the itinerary into sections: Morning, Afternoon, and Evening.`;
+Use the following format for your response:
+[
+    {
+        day: <number>, 
+        title: <string>, 
+        backgroundImage: <string>, // use searchgpt for getting URL of the background image for the partiucalar day with respect to city
+        activities: {
+            morning: [
+                {
+                    name: <string>, 
+                    link: <string>
+                },
+            ],
+            afternoon: [
+                {
+                    name: <string>,
+                    link: <string>
+                },
+            ],
+            evening: [
+                {
+                    name: <string>, 
+                    link: <string> 
+                },
+            ]
+        }
+    },
+];
+
+Generate a multi-day itinerary specific to the destination mentioned in the question in the above format. Only include activities, restaurants, and points of interest relevant to the mentioned city. If data for a specific activity is missing, use SearchGPT to fetch real links from the web related to the destination. Format the itinerary into sections: Morning, Afternoon, and Evening. Do not include activities from unrelated destinations.`;
 
         // Call OpenAI API
         const openaiResponse = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo", // Use GPT-4 Turbo if available
+            model: "gpt-4-turbo", // Use GPT-4 Turbo if available
             messages: [
                 { role: "system", content: systemMessage },
                 { role: "user", content: userPrompt }
             ],
-            max_tokens: 500,
+            max_tokens: 2000, // Increase token limit to handle longer responses
             temperature: 0.7,
         });
 
@@ -152,12 +240,26 @@ Incorporate the above activities where relevant. If there are no matching activi
         if (!resultText) {
             return res.status(500).json({ error: 'No response from OpenAI API', success: false });
         }
+        const query = `
+            INSERT INTO gpt_itineraries (username, query, output)
+            VALUES ($1, $2, $3)
+            RETURNING id, created_at;
+        `;
+
+        const values = ['gaurav', question, resultText];
+        const dbResult = await pgPool.query(query, values);
 
         console.log('Generated Itinerary:', resultText);
+        console.log('Saved to database with ID:', dbResult.rows[0].id);
+
+        // console.log('Generated Itinerary:', resultText);
+        // console.log('Generated Itinerary:', resultText.itineraryData);
 
         // Send the response back to the client
         res.json({
             result: resultText,
+            saved_id: dbResult.rows[0].id,
+            created_at: dbResult.rows[0].created_at,
             success: true
         });
 
@@ -170,6 +272,7 @@ Incorporate the above activities where relevant. If there are no matching activi
         });
     }
 };
+
 
 // const searchItinerary = async (req, res) => {
 //     try {

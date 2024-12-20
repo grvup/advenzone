@@ -1,27 +1,28 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-const LocationAccess= () => {
-  const [location, setLocation] = useState(null)
-  const [address, setAddress] = useState('');
+const LocationAccess = () => {
+  const [location, setLocation] = useState(null);
+  const [address, setAddress] = useState("");
   const [error, setError] = useState(null);
   const [permissionAsked, setPermissionAsked] = useState(false);
+
   const getAddressFromCoordinates = async (lat, lng) => {
-    // const apiKey = process.env.GOOGLE_API_KEY_2; // Replace with your Google API key
-    const apiKey = process.env.GOOGLE_API_KEY;
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+    const apiKey = 'e1e6fd9434364606ae2c1e9f92555ee5'; // Replace with your OpenCage API key
+    console.log(apiKey)
+    const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat},${lng}&key=${apiKey}`;
 
     try {
       const response = await fetch(url);
       const data = await response.json();
-      console.log(data)
-      if (data.status === 'OK') {
-        const formattedAddress = data.results[0]?.formatted_address;
-        setAddress(formattedAddress || 'Address not found');
+      console.log(data);
+      if (data.results && data.results.length > 0) {
+        const formattedAddress = data.results[0]?.formatted;
+        setAddress(formattedAddress || "Address not found");
       } else {
-        setError('Failed to fetch address');
+        setError("Failed to fetch address");
       }
     } catch (err) {
-      setError('Error fetching address');
+      setError("Error fetching address");
       console.error(err);
     }
   };
@@ -43,24 +44,26 @@ const LocationAccess= () => {
         }
       );
     } else {
-      setError('Geolocation is not supported by this browser.');
+      setError("Geolocation is not supported by this browser.");
     }
   };
-  useEffect(askForLocation,[])
-  console.log(location)
-  console.log(address)
+
+  useEffect(askForLocation, []);
+  console.log(location);
+  console.log(address);
+
   return (
     <div>
-      <h1 style={{color:"black"}}>User Location Access - </h1>
+      <h1 style={{ color: "black" }}>User Location Access - </h1>
       {!permissionAsked ? (
         <button onClick={askForLocation}>Allow Location Access</button>
       ) : location ? (
-        <p style={{color:"black"}}>
+        <p style={{ color: "black" }}>
           Latitude: {location.lat}, Longitude: {location.lng}
           {address && <p>Address: {address}</p>}
         </p>
       ) : error ? (
-        <p style={{ color: 'red' }}>{error}</p>
+        <p style={{ color: "red" }}>{error}</p>
       ) : (
         <p>Waiting for permission...</p>
       )}

@@ -23,4 +23,33 @@ const getActivities = async(req,res) =>{
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
-module.exports = {getLocations,getActivities};
+
+const getPastItineraries = async (req, res) => {
+    // const client = await pool.connect();
+
+    try {
+        const query = `
+            SELECT *
+            FROM gpt_itineraries
+            WHERE username = $1
+            ORDER BY created_at DESC;
+        `;
+
+        const result = await pgPool.query(query, ['gaurav']);
+        // console.log(result)
+        res.json({
+            itineraries: result.rows,
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error retrieving past itineraries:', error);
+        res.status(500).json({
+            error: 'Failed to retrieve past itineraries',
+            details: error.message,
+            success: false
+        });
+    } 
+};
+
+module.exports = {getLocations,getActivities , getPastItineraries};

@@ -1,9 +1,9 @@
 import { React, useEffect, useState } from 'react';
 import './Navbar.css';
-import { FaSearch, FaMapMarkerAlt, FaEdit, FaUser, FaChevronDown } from 'react-icons/fa';
+import { FaSearch, FaMapMarkerAlt, FaEdit, FaUser, FaChevronDown,FaHistory } from 'react-icons/fa';
 import logo from "../media/new-logo.svg";
 import axios from "axios";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate , Link } from 'react-router-dom';
 
 function Navbar() {
   const [locations, setLocations] = useState([]); // State to store locations from API
@@ -84,8 +84,10 @@ function Navbar() {
         </div>
         {/* Blogs Link */}
         <div className="blogs">
-          <FaEdit className="icon" />
-          <span>Blogs</span>
+          <Link to="/historyitinerary" className="flex items-center space-x-2">
+            <FaHistory className="icon text-gray-500" />
+            <span>History</span>
+          </Link>
         </div>
 
         {/* Profile Link */}
