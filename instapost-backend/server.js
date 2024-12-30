@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const connectDB = require('./connection');
+// const connectDB = require('./connection');
 const pgPool = require('./connectionpg');
 const hashtagRoutes = require('./routes/hashtagDataRoutes');
 const postRoutes = require('./routes/postsDataRoute');
@@ -13,7 +13,7 @@ const cors = require('cors');
 
 app.use(cors());
 // Connect to MongoDB
-connectDB();
+// connectDB();
 // pgPool.query();
 
 

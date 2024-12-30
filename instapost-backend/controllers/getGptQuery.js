@@ -75,36 +75,225 @@ const pgPool = require('../connectionpg')
 //     }
 // };
 
+// const getAdvenzoneLinks = async () => {
+//     const query = `
+//         SELECT
+//             activities.id AS activity_id,
+//             activities.addressline1 AS activity_name,
+//             activities.category AS activity_category,
+//             locations.id AS location_id,
+//             locations.locationname AS location_name
+//         FROM activities
+//         JOIN locations ON activities.locationid = locations.id;
+//     `;
+
+//     try {
+//         const result = await pgPool.query(query);
+//         const activities = result.rows;
+
+//         // Generate links based on database records
+//         const links = activities.map(activity => {
+//             const { activity_id, activity_name,activity_category, location_id, location_name } = activity;
+
+//             // Format activity name and location name to URL-safe slugs
+//             const activitySlug = activity_name.toLowerCase().replace(/\s+/g, '-');
+//             const locationSlug = location_name.toLowerCase().replace(/\s+/g, '-');
+
+//             return {
+//                 activity: activity_name,
+//                 location: location_name,
+//                 url: `https://staging.advenzone.in/location/${location_id}/${activity_category}-detail/${activity_id}/${locationSlug}/${activitySlug}`
+//             };
+//         });
+
+//         return links;
+//     } catch (error) {
+//         console.error('Error querying database:', error);
+//         throw new Error('Failed to fetch activities from database');
+//     }
+// };
+
+// const getAdvenzoneLinks = async () => {
+//     const query = `
+//         SELECT
+//             activities.id AS activity_id,
+//             activities.addressline1 AS activity_name,
+//             activities.category AS activity_category,
+//             locations.id AS location_id,
+//             locations.locationname AS location_name
+//         FROM activities
+//         JOIN locations ON activities.locationid = locations.id;
+//     `;
+
+//     try {
+//         const result = await pgPool.query(query);
+//         const activities = result.rows;
+
+//         const links = activities.map(activity => {
+//             const { activity_id, activity_name, activity_category, location_id, location_name } = activity;
+//             const activitySlug = activity_name.toLowerCase().replace(/\s+/g, '-');
+//             const locationSlug = location_name.toLowerCase().replace(/\s+/g, '-');
+
+//             let urlPath;
+//             switch(activity_category.toLowerCase()) {
+//                 case 'trekking':
+//                     urlPath = `${activity_category}-detail`;
+//                     break;
+//                 case 'tour':
+//                     urlPath = `package-${activity_category}-detail`;
+//                     break;
+//                 default:
+//                     urlPath = 'activity-details';
+//             }
+
+//             return {
+//                 activity: activity_name,
+//                 location: location_name,
+//                 url: `https://staging.advenzone.in/location/${location_id}/${urlPath}/${activity_id}/${locationSlug}/${activitySlug}`
+//             };
+//         });
+
+//         return links;
+//     } catch (error) {
+//         console.error('Error querying database:', error);
+//         throw new Error('Failed to fetch activities from database');
+//     }
+// };
+
+// const getAdvenzoneLinks = async () => {
+//     const query = `
+//         SELECT 
+//             a.id AS activity_id,
+//             a.addressline1 AS activity_name,
+//             a.category AS activity_category,
+//             l.id AS location_id,
+//             l.locationname AS location_name,
+//             m.id AS merchant_activity_id,
+//             m.additionalinfo
+//         FROM activities a
+//         JOIN locations l ON a.locationid = l.id
+//         LEFT JOIN merchantactivities m ON m.activityid = a.id;
+//     `;
+
+//     try {
+//         const result = await pgPool.query(query);
+//         const activities = result.rows;
+
+//         const links = activities.map(activity => {
+//             const { 
+//                 activity_id, 
+//                 activity_name, 
+//                 activity_category, 
+//                 location_id, 
+//                 location_name,
+//                 merchant_activity_id,
+//                 additionalinfo 
+//             } = activity;
+
+//             const locationSlug = location_name.toLowerCase().replace(/\s+/g, '-');
+//             let urlPath, finalId, activitySlug;
+
+//             switch(activity_category.toLowerCase()) {
+//                 case 'camping':
+//                     urlPath = 'camping-details';
+//                     finalId = merchant_activity_id;
+//                     const campingInfo = JSON.parse(additionalinfo || '{}');
+//                     activitySlug = campingInfo.campingname?.toLowerCase().replace(/\s+/g, '-') || '';
+//                     console.log(activitySlug)
+//                     break;
+//                 case 'trekking':
+//                     urlPath = `${activity_category}-detail`;
+//                     finalId = activity_id;
+//                     activitySlug = activity_name.toLowerCase().replace(/\s+/g, '-');
+//                     break;
+//                 case 'tour':
+//                     urlPath = `package-${activity_category}-detail`;
+//                     finalId = activity_id;
+//                     activitySlug = activity_name.toLowerCase().replace(/\s+/g, '-');
+//                     break;
+//                 default:
+//                     urlPath = 'activity-details';
+//                     finalId = activity_id;
+//                     activitySlug = activity_name.toLowerCase().replace(/\s+/g, '-');
+//             }
+
+//             return {
+//                 activity: activity_name,
+//                 location: location_name,
+//                 url: `https://staging.advenzone.in/location/${location_id}/${urlPath}/${finalId}/${locationSlug}/${activitySlug}`
+//             };
+//         });
+
+//         return links;
+//     } catch (error) {
+//         console.error('Error querying database:', error);
+//         throw new Error('Failed to fetch activities from database');
+//     }
+// };
+
 const getAdvenzoneLinks = async () => {
     const query = `
-        SELECT
-            activities.id AS activity_id,
-            activities.addressline1 AS activity_name,
-            activities.category AS activity_category,
-            locations.id AS location_id,
-            locations.locationname AS location_name
-        FROM activities
-        JOIN locations ON activities.locationid = locations.id;
+        SELECT 
+            a.id AS activity_id,
+            a.addressline1 AS activity_name,
+            a.category AS activity_category,
+            l.id AS location_id,
+            l.locationname AS location_name,
+            m.id AS merchant_activity_id,
+            m.additionalinfo
+        FROM activities a
+        JOIN locations l ON a.locationid = l.id
+        LEFT JOIN merchantactivities m ON m.activityid = a.id;
     `;
 
     try {
         const result = await pgPool.query(query);
         const activities = result.rows;
 
-        // Generate links based on database records
         const links = activities.map(activity => {
-            const { activity_id, activity_name,activity_category, location_id, location_name } = activity;
-
-            // Format activity name and location name to URL-safe slugs
-            const activitySlug = activity_name.toLowerCase().replace(/\s+/g, '-');
+            const { 
+                activity_id, 
+                activity_name, 
+                activity_category, 
+                location_id, 
+                location_name,
+                merchant_activity_id,
+                additionalinfo 
+            } = activity;
+            
             const locationSlug = location_name.toLowerCase().replace(/\s+/g, '-');
+            let urlPath, finalId, activitySlug;
+
+            if (activity_category.toLowerCase() === 'camping') {
+                const campingInfo = JSON.parse(additionalinfo || '{}');
+                if (!campingInfo.campingname) return null;
+                
+                urlPath = 'camping-details';
+                finalId = merchant_activity_id;
+                activitySlug = campingInfo.campingname.toLowerCase().replace(/\s+/g, '-');
+                
+            } else {
+                activitySlug = activity_name.toLowerCase().replace(/\s+/g, '-');
+                finalId = activity_id;
+                
+                switch(activity_category.toLowerCase()) {
+                    case 'trekking':
+                        urlPath = `${activity_category}-detail`;
+                        break;
+                    case 'tour':
+                        urlPath = `package-${activity_category}-detail`;
+                        break;
+                    default:
+                        urlPath = 'activity-details';
+                }
+            }
 
             return {
                 activity: activity_name,
                 location: location_name,
-                url: `https://staging.advenzone.in/location/${location_id}/${activity_category}-details/${activity_id}/${locationSlug}/${activitySlug}`
+                url: `https://staging.advenzone.in/location/${location_id}/${urlPath}/${finalId}/${locationSlug}/${activitySlug}`
             };
-        });
+        }).filter(link => link !== null);
 
         return links;
     } catch (error) {
@@ -112,7 +301,6 @@ const getAdvenzoneLinks = async () => {
         throw new Error('Failed to fetch activities from database');
     }
 };
-
 
 // const searchItinerary = async (req, res) => {
 //     try {
@@ -185,19 +373,66 @@ const searchItinerary = async (req, res) => {
         const advenzoneLinks = await getAdvenzoneLinks();
 
         // Construct system and user prompts for GPT model
-        const systemMessage = "You are an advanced travel assistant capable of creating comprehensive itineraries by incorporating data from both specific and general sources.";
+//         const systemMessage = "You are an advanced travel assistant capable of creating comprehensive itineraries by incorporating data from both specific and general sources.";
 
-        const userPrompt = `A user is asking: "${question}"
+//         const userPrompt = `A user is asking: "${question}"
 
-Here are activities available on Advenzone with their links:
+// Here are activities available on Advenzone with their links:
+// ${advenzoneLinks.map(link => `- ${link.activity} at ${link.location}: ${link.url}`).join('\n')}
+
+// Use the following format for your response:
+// [
+//     {
+//         day: <number>, 
+//         title: <string>, 
+//         backgroundImage: <string>, 
+        // activities: {
+        //     morning: [
+        //         {
+        //             name: <string>, 
+        //             link: <string>
+        //         },
+        //     ],
+        //     afternoon: [
+        //         {
+        //             name: <string>,
+        //             link: <string>
+        //         },
+        //     ],
+        //     evening: [
+        //         {
+        //             name: <string>, 
+        //             link: <string> 
+        //         },
+        //     ]
+        // }
+//     },
+// ];
+
+// Generate a multi-day itinerary specific to the destination mentioned in the question in the above format. Only include activities, restaurants, tours, camping, and points of interest relevant to the mentioned city. If data for a specific activity is missing, use SearchGPT to fetch real links from the web related to the destination. Format the itinerary into sections: Morning, Afternoon, and Evening. Do not include activities from unrelated destinations.`;
+    const locationMatch = question.match(/in\s+([a-zA-Z\s]+)(?:\s|$)/i);
+     const location = locationMatch ? locationMatch[1].trim() : '';
+
+const systemMessage = `You are an advanced travel assistant. For activities not available in the provided Advenzone links, generate real web links in this format:
+- For restaurants: Use TripAdvisor, Zomato, SearchGPT or Google Maps links
+- For tourist spots: Use official website links or SearchGPT
+- For activities: Use official tour operator, SearchGPT or booking platform links
+
+Never generate placeholder or example.com links. If you can't find a specific link, provide the activity name without a link.`;
+
+        const userPrompt = `Create an itinerary for: "${question}"
+
+Available Advenzone activities:
 ${advenzoneLinks.map(link => `- ${link.activity} at ${link.location}: ${link.url}`).join('\n')}
 
-Use the following format for your response:
+For activities not in the above list, include real web links for ${location} from popular platforms like TripAdvisor, Google Maps, or official websites.
+
+Use this format:
 [
     {
         day: <number>, 
         title: <string>, 
-        backgroundImage: <string>, // use searchgpt for getting URL of the background image for the partiucalar day with respect to city
+        backgroundImage: <string>, 
         activities: {
             morning: [
                 {
@@ -218,10 +453,9 @@ Use the following format for your response:
                 },
             ]
         }
-    },
-];
+    }
+]`;
 
-Generate a multi-day itinerary specific to the destination mentioned in the question in the above format. Only include activities, restaurants, and points of interest relevant to the mentioned city. If data for a specific activity is missing, use SearchGPT to fetch real links from the web related to the destination. Format the itinerary into sections: Morning, Afternoon, and Evening. Do not include activities from unrelated destinations.`;
 
         // Call OpenAI API
         const openaiResponse = await openai.chat.completions.create({
@@ -230,7 +464,7 @@ Generate a multi-day itinerary specific to the destination mentioned in the ques
                 { role: "system", content: systemMessage },
                 { role: "user", content: userPrompt }
             ],
-            max_tokens: 2000, // Increase token limit to handle longer responses
+            max_tokens: 3000, // Increase token limit to handle longer responses
             temperature: 0.7,
         });
 
